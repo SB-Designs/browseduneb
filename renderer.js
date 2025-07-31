@@ -1,133 +1,79 @@
-// React-based UI for renderer
 const React = window.React = require('react');
 const ReactDOM = require('react-dom');
 
-function useIpcState(getter, updater, defaultValue = []) {
-  // Helper hook to sync state with main process (bookmarks/tabs/settings)
-  const [state, setState] = React.useState(defaultValue);
-  React.useEffect(() => {
-    getter().then(setState);
-  }, []);
-  const save = (value) => {
-    setState(value);
-    updater(value);
-  };
-  return [state, save, setState];
+function IconGear({size=24}) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" style={{display:'block'}} fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09A1.65 1.65 0 0 0 12 3.09V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09A1.65 1.65 0 0 0 21 12h.09a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  );
+}
+function IconDownload({size=24}) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" style={{display:'block'}} fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+  );
 }
 
-function TabsPanel({ tabs, onSwitch, onNew, onClose, onReload, onBookmark, activeIdx }) {
+function Sidebar({
+  tabs, activeIdx, onSwitch, onNew, onClose, onNavBack, onNavForward,
+  address, onAddressChange, onAddressGo, onSettings, onDownload
+}) {
   return (
-    <div style={{
-      width: 260,
-      background: '#23272f',
-      color: '#fff',
-      height: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      borderRight: '1px solid #111'
-    }}>
-      <div style={{ padding: 10, borderBottom: '1px solid #333', flexShrink: 0, display: 'flex', gap: 6 }}>
-        <button onClick={() => onNew()} title="New Tab" style={{ width: 32, height: 32 }}>+</button>
-        <button onClick={onReload} title="Reload Tab" style={{ width: 32, height: 32 }}>⟳</button>
-        <button onClick={onBookmark} title="Bookmark" style={{ width: 32, height: 32 }}>★</button>
-        <button onClick={() => window.electronAPI.openBookmarks()} style={{ width: 32, height: 32 }}>☰</button>
-        <button onClick={() => window.electronAPI.openSettings()} style={{ width: 32, height: 32 }}>⚙</button>
-      </div>
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        {tabs.map((tab, i) => (
-          <div key={i}
-            onClick={() => onSwitch(i)}
-            style={{
-              display: 'flex', alignItems: 'center', padding: 8,
-              background: tab.active ? '#1c2027' : 'transparent',
-              cursor: 'pointer', borderBottom: '1px solid #111', position: 'relative'
-            }}>
-            <div style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              <span>{tab.title || tab.url}</span>
-            </div>
-            <button onClick={e => { e.stopPropagation(); onClose(i); }}
-              style={{
-                marginLeft: 5, background: 'transparent', border: 'none',
-                color: '#fff', cursor: 'pointer', fontSize: 16
-              }}>×</button>
+    <div className="sidebar-gradient">
+      <div style={{padding: '0 0 0 0', display:'flex', flexDirection:'column', height:'100%'}}>
+        <div style={{padding: '32px 0 0 0', alignItems:'center', display:'flex', flexDirection:'column'}}>
+          <div style={{fontWeight:'bold', fontSize:36, color:'white', fontFamily:'Montserrat,sans-serif', marginBottom:24, letterSpacing:1}}>
+            Duneb
           </div>
-        ))}
+          <form onSubmit={e=>{e.preventDefault();onAddressGo(address);}} style={{width:'85%', marginBottom:18}}>
+            <input
+              className="address-bar"
+              style={{width:'100%'}}
+              placeholder="Address Bar"
+              value={address}
+              onChange={e=>onAddressChange(e.target.value)}
+              spellCheck={false}
+            />
+          </form>
+        </div>
+        <div style={{padding:'0 0 0 0', flex:1, display:'flex', flexDirection:'column'}}>
+          <div style={{color:'#fff', fontWeight:'bold', fontSize:20, textAlign:'center', letterSpacing:0.5, marginBottom:4, marginTop:4}}>
+            My Tabs
+          </div>
+          <div className="newtab-btn" onClick={onNew}>New Tab +</div>
+          <div style={{display:'flex', justifyContent:'center', gap:16, margin:'16px 0'}}>
+            <button className="nav-arrow" tabIndex={-1} onClick={onNavBack} aria-label="Back">{'←'}</button>
+            <button className="nav-arrow" tabIndex={-1} onClick={onNavForward} aria-label="Forward">{'→'}</button>
+          </div>
+          <div style={{flex:1, overflowY:'auto', paddingBottom:10}}>
+            {tabs.map((tab, i) => (
+              <div
+                key={i}
+                className="tab-btn"
+                style={{
+                  background: i===activeIdx ? '#fff' : 'rgba(255,255,255,0.95)',
+                  color: i===activeIdx ? '#3d3d3d' : '#3d3d3d',
+                  fontWeight: 500,
+                }}
+              >
+                <span onClick={()=>onSwitch(i)} style={{flex:1, cursor:'pointer', minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>
+                  {tab.title || `Tab ${i+1}`}
+                </span>
+                <button className="tab-close" tabIndex={-1} onClick={()=>onClose(i)} title="Close Tab">x</button>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'0 28px 16px 28px'}}>
+          <button className="icon-btn" tabIndex={-1} title="Settings" onClick={onSettings}><IconGear/></button>
+          <button className="icon-btn" tabIndex={-1} title="Download Bookmarks" onClick={onDownload}><IconDownload/></button>
+        </div>
       </div>
-    </div>
-  );
-}
-
-function AddressBar({ value, onChange, onGo }) {
-  const [input, setInput] = React.useState(value);
-  React.useEffect(() => setInput(value), [value]);
-  return (
-    <form style={{ display: 'flex', alignItems: 'center', padding: 6, background: '#eee' }}
-      onSubmit={e => { e.preventDefault(); onGo(input); }}>
-      <input
-        type="text"
-        value={input}
-        onChange={e => setInput(e.target.value)}
-        style={{ flex: 1, fontSize: 16, padding: 6, borderRadius: 4, border: '1px solid #999' }}
-        spellCheck={false}
-        autoFocus
-      />
-      <button type="submit" style={{ marginLeft: 8 }}>Go</button>
-    </form>
-  );
-}
-
-function SettingsPanel({ settings, onSave, onClose }) {
-  const [local, setLocal] = React.useState(settings);
-  React.useEffect(() => setLocal(settings), [settings]);
-  return (
-    <div style={{
-      position: 'fixed', top: 0, left: 260, right: 0, bottom: 0,
-      background: '#fff', zIndex: 100, boxShadow: '0 0 10px #0005', padding: 30
-    }}>
-      <h2>Settings</h2>
-      <label>
-        Home page:
-        <input
-          type="text"
-          value={local.home}
-          onChange={e => setLocal({ ...local, home: e.target.value })}
-          style={{ marginLeft: 8, width: 400, fontSize: 16 }}
-        />
-      </label>
-      <div style={{ marginTop: 20 }}>
-        Theme:
-        <select
-          value={local.theme}
-          onChange={e => setLocal({ ...local, theme: e.target.value })}
-          style={{ marginLeft: 8, fontSize: 16 }}>
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-        </select>
-      </div>
-      <div style={{ marginTop: 30 }}>
-        <button onClick={() => { onSave(local); onClose(); }}>Save</button>
-        <button onClick={onClose} style={{ marginLeft: 10 }}>Cancel</button>
-      </div>
-    </div>
-  );
-}
-
-function BookmarksPanel({ bookmarks, onNavigate, onRemove, onClose }) {
-  return (
-    <div style={{
-      position: 'fixed', top: 0, left: 260, right: 0, bottom: 0,
-      background: '#fff', zIndex: 100, boxShadow: '0 0 10px #0005', padding: 30
-    }}>
-      <h2>Bookmarks</h2>
-      <ul>
-        {bookmarks.map((bm, i) => (
-          <li key={i} style={{ marginBottom: 10 }}>
-            <a href="#" onClick={e => { e.preventDefault(); onNavigate(bm.url); }}>{bm.title || bm.url}</a>
-            <button style={{ marginLeft: 10 }} onClick={() => onRemove(i)}>Remove</button>
-          </li>
-        ))}
-      </ul>
-      <button onClick={onClose}>Close</button>
     </div>
   );
 }
@@ -136,95 +82,58 @@ function App() {
   const [tabs, setTabs] = React.useState([]);
   const [activeIdx, setActiveIdx] = React.useState(0);
   const [address, setAddress] = React.useState('');
-  const [settings, saveSettings, setSettings] = useIpcState(
-    () => window.electronAPI.getSettings(), (s) => window.electronAPI.saveSettings(s),
-    { home: 'https://www.google.com', theme: 'light' }
-  );
-  const [bookmarks, saveBookmarks, setBookmarks] = useIpcState(
-    () => window.electronAPI.getBookmarks(), (b) => window.electronAPI.saveBookmarks(b), []
-  );
-  const [showSettings, setShowSettings] = React.useState(false);
-  const [showBookmarks, setShowBookmarks] = React.useState(false);
 
-  // Listen to tab updates from main
+  // IPC: fetch tabs and listen for updates
   React.useEffect(() => {
     window.electronAPI.getTabs().then(tabs => {
       setTabs(tabs);
-      const idx = tabs.findIndex(t => t.active);
-      setActiveIdx(idx >= 0 ? idx : 0);
-      setAddress(tabs[idx >= 0 ? idx : 0]?.url || '');
+      const idx = tabs.findIndex(t=>t.active);
+      setActiveIdx(idx>=0?idx:0);
+      setAddress(tabs[idx>=0?idx:0]?.url || '');
     });
-    window.electronAPI.onUpdateTabs((tabs) => {
+    window.electronAPI.onUpdateTabs(tabs => {
       setTabs(tabs);
-      const idx = tabs.findIndex(t => t.active);
-      setActiveIdx(idx >= 0 ? idx : 0);
-      setAddress(tabs[idx >= 0 ? idx : 0]?.url || '');
+      const idx = tabs.findIndex(t=>t.active);
+      setActiveIdx(idx>=0?idx:0);
+      setAddress(tabs[idx>=0?idx:0]?.url || '');
     });
-    window.electronAPI.onShowSettings(() => setShowSettings(true));
-    window.electronAPI.onShowBookmarks(() => setShowBookmarks(true));
   }, []);
 
-  // Tab actions
-  const handleSwitchTab = idx => { setActiveIdx(idx); window.electronAPI.switchTab(idx); };
-  const handleNewTab = (url) => {
-    const navUrl = url || settings.home || 'https://www.google.com';
-    window.electronAPI.newTab(navUrl);
-  };
-  const handleCloseTab = idx => { window.electronAPI.closeTab(idx); };
-  const handleReload = () => window.electronAPI.reloadTab(activeIdx);
-  const handleBookmark = () => {
-    const tab = tabs[activeIdx];
-    if (!tab) return;
-    setBookmarks([...bookmarks, { url: tab.url, title: tab.title }]);
-    saveBookmarks([...bookmarks, { url: tab.url, title: tab.title }]);
-  };
-  const handleGo = url => {
+  const handleSwitchTab = i => { setActiveIdx(i); window.electronAPI.switchTab(i); };
+  const handleNewTab = () => window.electronAPI.newTab('https://www.google.com');
+  const handleCloseTab = i => window.electronAPI.closeTab(i);
+  const handleNavBack = () => window.electronAPI.navigate(activeIdx, 'back');
+  const handleNavForward = () => window.electronAPI.navigate(activeIdx, 'forward');
+  const handleSettings = () => window.electronAPI.openSettings();
+  const handleDownload = () => window.electronAPI.openBookmarks();
+  const handleAddressGo = url => {
     let clean = url.trim();
     if (!/^https?:\/\//.test(clean)) clean = 'https://' + clean;
     window.electronAPI.navigate(activeIdx, clean);
     setAddress(clean);
   };
 
-  // Settings/bookmarks panels
-  const handleSettingsSave = (newSettings) => { saveSettings(newSettings); };
-  const handleBookmarkNavigate = url => { handleNewTab(url); setShowBookmarks(false); };
-  const handleRemoveBookmark = idx => {
-    const b = [...bookmarks];
-    b.splice(idx, 1);
-    setBookmarks(b);
-    saveBookmarks(b);
-  };
-
-  // Theme
-  React.useEffect(() => {
-    document.body.style.background = settings.theme === 'dark' ? '#14161a' : '#fafafa';
-    document.body.style.color = settings.theme === 'dark' ? '#fff' : '#222';
-  }, [settings.theme]);
-
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw' }}>
-      <TabsPanel
+    <div style={{display:'flex', height:'100vh'}}>
+      <Sidebar
         tabs={tabs}
         activeIdx={activeIdx}
         onSwitch={handleSwitchTab}
         onNew={handleNewTab}
         onClose={handleCloseTab}
-        onReload={handleReload}
-        onBookmark={handleBookmark}
+        onNavBack={handleNavBack}
+        onNavForward={handleNavForward}
+        address={address}
+        onAddressChange={setAddress}
+        onAddressGo={handleAddressGo}
+        onSettings={handleSettings}
+        onDownload={handleDownload}
       />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh' }}>
-        <AddressBar value={address} onChange={setAddress} onGo={handleGo} />
-        <div style={{ flex: 1 }}></div>
+      <div className="main-view">
+        <div className="website-view-placeholder">
+          Website View
+        </div>
       </div>
-      {showSettings &&
-        <SettingsPanel settings={settings}
-          onSave={handleSettingsSave}
-          onClose={() => setShowSettings(false)} />}
-      {showBookmarks &&
-        <BookmarksPanel bookmarks={bookmarks}
-          onNavigate={handleBookmarkNavigate}
-          onRemove={handleRemoveBookmark}
-          onClose={() => setShowBookmarks(false)} />}
     </div>
   );
 }
