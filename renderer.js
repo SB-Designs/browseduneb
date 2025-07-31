@@ -51,6 +51,11 @@ function Sidebar({
             <button className="nav-arrow" tabIndex={-1} onClick={onNavForward} aria-label="Forward">{'→'}</button>
           </div>
           <div style={{flex:1, overflowY:'auto', paddingBottom:10}}>
+            {tabs.length === 0 && (
+              <div style={{
+                color:'#fff', textAlign:'center', opacity:0.7, marginTop:20
+              }}>No tabs open</div>
+            )}
             {tabs.map((tab, i) => (
               <div
                 key={i}
@@ -62,7 +67,7 @@ function Sidebar({
                 }}
               >
                 <span onClick={()=>onSwitch(i)} style={{flex:1, cursor:'pointer', minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>
-                  {tab.title || `Tab ${i+1}`}
+                  {tab.title || tab.url || `Tab ${i+1}`}
                 </span>
                 <button className="tab-close" tabIndex={-1} onClick={()=>onClose(i)} title="Close Tab">x</button>
               </div>
@@ -83,14 +88,15 @@ function App() {
   const [activeIdx, setActiveIdx] = React.useState(0);
   const [address, setAddress] = React.useState('');
 
-  // IPC: fetch tabs and listen for updates
   React.useEffect(() => {
+    // Fetch initial tabs
     window.electronAPI.getTabs().then(tabs => {
       setTabs(tabs);
       const idx = tabs.findIndex(t=>t.active);
       setActiveIdx(idx>=0?idx:0);
       setAddress(tabs[idx>=0?idx:0]?.url || '');
     });
+    // Listen for tab updates
     window.electronAPI.onUpdateTabs(tabs => {
       setTabs(tabs);
       const idx = tabs.findIndex(t=>t.active);
@@ -99,6 +105,7 @@ function App() {
     });
   }, []);
 
+  // Tab actions
   const handleSwitchTab = i => { setActiveIdx(i); window.electronAPI.switchTab(i); };
   const handleNewTab = () => window.electronAPI.newTab('https://www.google.com');
   const handleCloseTab = i => window.electronAPI.closeTab(i);
@@ -130,9 +137,7 @@ function App() {
         onDownload={handleDownload}
       />
       <div className="main-view">
-        <div className="website-view-placeholder">
-          Website View
-        </div>
+        {/* The BrowserView will overlay here via Electron */}
       </div>
     </div>
   );
