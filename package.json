@@ -1,0 +1,19 @@
+{
+  "name": "electron-chromium-browser",
+  "version": "1.0.0",
+  "description": "A fully functional Chromium-based web browser built with Electron.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "echo 'No build step required for this template.'"
+  },
+  "keywords": ["electron", "chromium", "browser", "vertical-tabs"],
+  "author": "SB-Designs",
+  "license": "MIT",
+  "dependencies": {
+    "electron": "^30.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {}
+}
